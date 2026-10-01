@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#0b1020">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Basket Match">
+<link rel="manifest" href="manifest.json">
+<title>Basket Match</title>
+<style>
+:root{--bg:#080c18;--panel:#11182a;--panel2:#182137;--line:#2b3855;--text:#f8fafc;--muted:#9aa7bd;--accent:#f59e0b;--green:#22c55e;--red:#ef4444}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{padding-bottom:env(safe-area-inset-bottom)}button,input{font:inherit}button{border:0}
+.app{max-width:720px;margin:auto;min-height:100vh;padding:10px 10px 24px}
+header{display:flex;align-items:center;justify-content:space-between;padding:8px 2px 12px}
+h1{font-size:20px;margin:0}.sub{font-size:12px;color:var(--muted)}
+.iconbtn{width:42px;height:42px;border-radius:12px;background:var(--panel);color:var(--text);font-size:19px}
+.scoreboard{background:linear-gradient(145deg,#11182a,#0e1424);border:1px solid var(--line);border-radius:20px;padding:14px;margin-bottom:10px}
+.scoreline{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;text-align:center}
+.teamname{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.score{font-size:48px;font-weight:850;line-height:1}.clock{font-size:26px;font-weight:800;margin-top:2px}
+.period{font-size:12px;color:var(--muted)}.clockrow{display:flex;gap:7px;justify-content:center;margin-top:10px}
+.small{padding:8px 12px;border-radius:10px;background:var(--panel2);color:var(--text);font-weight:700}.danger{background:#3a1720;color:#fecaca}
+.scorebtns{display:flex;gap:6px;margin-top:8px}.scorebtns button{flex:1;padding:8px;border-radius:10px;background:var(--panel2);color:white;font-weight:800}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0}.tab{padding:11px;border-radius:11px;background:var(--panel);color:var(--muted);font-weight:800}.tab.active{background:var(--accent);color:#17120a}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:11px;margin-bottom:10px}
+.panel h2{font-size:15px;margin:0 0 9px}
+.players{display:grid;gap:7px}
+.player{display:grid;grid-template-columns:42px 1fr auto;gap:8px;align-items:center;background:var(--panel2);border-radius:13px;padding:7px}
+.num{width:40px;height:40px;border-radius:10px;background:#25314a;display:grid;place-items:center;font-weight:900}
+.pname{font-weight:800}.mini{font-size:11px;color:var(--muted);margin-top:2px}
+.active5{box-shadow:inset 0 0 0 2px var(--green)}
+.actions{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}.act{padding:10px 4px;border-radius:9px;background:#26334d;color:white;font-weight:850;font-size:12px}.act:active{transform:scale(.96)}
+.plus{background:#194b35}.minus{background:#4b2028}
+.footer{display:flex;gap:7px}.footer button{flex:1;padding:12px;border-radius:11px;background:var(--panel2);color:white;font-weight:800}
+.modal{position:fixed;inset:0;background:#000b;display:none;align-items:flex-end;z-index:10}.modal.show{display:flex}.sheet{background:var(--panel);width:100%;max-width:720px;margin:auto;border-radius:20px 20px 0 0;padding:16px;max-height:88vh;overflow:auto}.sheet h2{margin-top:0}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.formgrid input{width:100%;padding:11px;border-radius:10px;border:1px solid var(--line);background:#0c1322;color:white}
+.rosterrow{display:grid;grid-template-columns:55px 1fr auto;gap:7px;margin:7px 0}.rosterrow input{padding:9px;background:#0c1322;color:white;border:1px solid var(--line);border-radius:9px}.rosterrow button{border-radius:9px;background:#3a1720;color:#fecaca}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div><h1>🏀 Basket Match</h1><div class="sub" id="matchLabel">Nuova partita</div></div><button class="iconbtn" onclick="openSettings()">⚙️</button></header>
+
+<section class="scoreboard">
+ <div class="scoreline">
+  <div><div class="teamname" id="homeName">HOME</div><div class="score" id="homeScore">0</div><div class="scorebtns"><button onclick="score('home',1)">+1</button><button onclick="score('home',2)">+2</button><button onclick="score('home',3)">+3</button></div></div>
+  <div><div class="period" id="periodLabel">Q1</div><div class="clock" id="clock">10:00</div><div class="clockrow"><button class="small" onclick="toggleClock()" id="clockBtn">▶</button><button class="small" onclick="resetClock()">↺</button><button class="small" onclick="nextPeriod()">Q+</button></div></div>
+  <div><div class="teamname" id="awayName">AWAY</div><div class="score" id="awayScore">0</div><div class="scorebtns"><button onclick="score('away',1)">+1</button><button onclick="score('away',2)">+2</button><button onclick="score('away',3)">+3</button></div></div>
+ </div>
+</section>
+
+<div class="tabs">
+<button class="tab active" onclick="showTab('home',this)">HOME</button><button class="tab" onclick="showTab('away',this)">AWAY</button><button class="tab" onclick="showTab('team',this)">PARTITA</button>
+</div>
+<div id="content"></div>
+</div>
+
+<div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
+
+<script>
+const KEY="basketMatchProV1";
+let state={match:"",home:"HOME",away:"AWAY",period:1,clock:600,running:false,scores:{home:0,away:0},selected:{home:null,away:null},players:{home:[],away:[]},events:[]};
+for(const t of ["home","away"])for(let i=0;i<10;i++)state.players[t].push({n:i+4,name:"",on:false,stats:{"+/-":0,PF:0,Ro:0,Rd:0,TO:0,Stl:0,Ast:0,Blk:0,FT:0,FG:0,"3PT":0,DF:0}});
+let timer=null;
+function save(){localStorage.setItem(KEY,JSON.stringify(state))}
+function load(){try{let x=JSON.parse(localStorage.getItem(KEY));if(x)state=x}catch(e){};render()}
+function fmt(s){return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")}
+function render(){document.getElementById("homeName").textContent=state.home;document.getElementById("awayName").textContent=state.away;document.getElementById("homeScore").textContent=state.scores.home;document.getElementById("awayScore").textContent=state.scores.away;document.getElementById("clock").textContent=fmt(state.clock);document.getElementById("periodLabel").textContent="Q"+state.period;document.getElementById("matchLabel").textContent=state.match||"Nuova partita";document.getElementById("clockBtn").textContent=state.running?"Ⅱ":"▶";renderTab(window.currentTab||"home")}
+function renderTab(tab){window.currentTab=tab;let c=document.getElementById("content");if(tab==="team"){c.innerHTML=`<div class="panel"><h2>Riepilogo partita</h2><div class="sub">Eventi registrati: ${state.events.length}</div></div><div class="panel"><h2>Ultimi eventi</h2>${state.events.slice(-12).reverse().map(e=>`<div class="player"><div class="num">${e.q}</div><div><b>${e.team==="home"?state.home:state.away} #${e.n}</b><div class="mini">${e.action}</div></div><b>${e.time}</b></div>`).join("")||"<div class='sub'>Nessun evento.</div>"}</div><div class="footer"><button onclick="exportCSV()">Esporta CSV</button><button onclick="window.print()">Stampa</button></div>`;return}
+let t=tab;let ps=state.players[t];c.innerHTML=`<div class="panel"><h2>${t==="home"?state.home:state.away} · 5 in campo</h2><div class="players">${ps.map((p,i)=>playerHTML(t,i,p)).join("")}</div></div><div class="panel"><div class="footer"><button onclick="benchAll('${t}')">Panchina tutti</button><button onclick="openRoster('${t}')">Rosa / numeri</button></div></div>`}
+function playerHTML(t,i,p){let s=p.stats;return `<div class="player ${p.on?"active5":""}"><button class="num" onclick="togglePlayer('${t}',${i})">${p.n}</button><div><div class="pname">${p.name||"Giocatore "+(i+1)}</div><div class="mini">FG ${s.FG} · 3PT ${s["3PT"]} · FT ${s.FT} · RO ${s.Ro} · RD ${s.Rd} · AST ${s.Ast}</div></div><div class="actions">${act(t,i,"FG","+1","plus")}${act(t,i,"3PT","+1","plus")}${act(t,i,"FT","+1","plus")}${act(t,i,"TO","+1","minus")}${act(t,i,"Ro","+1","plus")}${act(t,i,"Rd","+1","plus")}${act(t,i,"Ast","+1","plus")}${act(t,i,"PF","+1","minus")}</div></div>`}
+function act(t,i,k,label,cl){return `<button class="act ${cl}" onclick="stat(event,'${t}',${i},'${k}',1)">${k} ${label}</button>`}
+function stat(ev,t,i,k,v){ev.stopPropagation();let p=state.players[t][i];p.stats[k]=(p.stats[k]||0)+v;state.events.push({team:t,n:p.n,action:k+" +"+v,q:state.period,time:fmt(state.clock)});save();render()}
+function score(t,n){state.scores[t]+=n;state.events.push({team:t,n:"TEAM",action:"Canestro +"+n,q:state.period,time:fmt(state.clock)});save();render()}
+function togglePlayer(t,i){state.players[t][i].on=!state.players[t][i].on;save();render()}
+function benchAll(t){state.players[t].forEach(p=>p.on=false);save();render()}
+function toggleClock(){state.running=!state.running;if(state.running){timer=setInterval(()=>{if(state.clock>0){state.clock--;render()}else{state.running=false;clearInterval(timer)}} ,1000)}else clearInterval(timer);render()}
+function resetClock(){state.running=false;clearInterval(timer);state.clock=600;render()}
+function nextPeriod(){state.running=false;clearInterval(timer);state.period=Math.min(4,state.period+1);state.clock=600;render()}
+function showTab(t,b){document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");renderTab(t)}
+function openSettings(){document.getElementById("sheet").innerHTML=`<h2>Impostazioni partita</h2><div class="formgrid"><input id="m" placeholder="Partita" value="${esc(state.match)}"><input id="h" placeholder="Home" value="${esc(state.home)}"><input id="a" placeholder="Away" value="${esc(state.away)}"></div><div class="footer" style="margin-top:12px"><button onclick="closeModal()">Annulla</button><button onclick="saveSettings()">Salva</button></div><hr><button class="danger" style="width:100%;padding:12px" onclick="newGame()">Nuova partita / cancella dati</button>`;modal()}
+function saveSettings(){state.match=document.getElementById("m").value;state.home=document.getElementById("h").value||"HOME";state.away=document.getElementById("a").value||"AWAY";save();closeModal();render()}
+function openRoster(t){document.getElementById("sheet").innerHTML=`<h2>Rosa ${t==="home"?state.home:state.away}</h2>${state.players[t].map((p,i)=>`<div class="rosterrow"><input type="number" id="n${i}" value="${p.n}"><input id="p${i}" placeholder="Nome" value="${esc(p.name)}"><button onclick="removePlayer('${t}',${i})">×</button></div>`).join("")}<div class="footer"><button onclick="closeModal()">Annulla</button><button onclick="saveRoster('${t}')">Salva</button></div>`;modal()}
+function saveRoster(t){state.players[t].forEach((p,i)=>{p.n=Number(document.getElementById("n"+i).value)||i+4;p.name=document.getElementById("p"+i).value});save();closeModal();render()}
+function removePlayer(t,i){state.players[t][i].name="";save();openRoster(t)}
+function modal(){document.getElementById("modal").classList.add("show")}
+function closeModal(){document.getElementById("modal").classList.remove("show")}
+function newGame(){if(confirm("Cancellare partita e statistiche?")){localStorage.removeItem(KEY);location.reload()}}
+function esc(x){return String(x||"").replaceAll("&","&amp;").replaceAll('"',"&quot;").replaceAll("<","&lt;")}
+function exportCSV(){let out="Team;N;Giocatore;+/-;PF;Ro;Rd;TO;Stl;Ast;Blk;FT;FG;3PT;DF\n";for(const t of ["home","away"])for(const p of state.players[t])out+=`${t};${p.n};"${p.name}";${Object.values(p.stats).join(";")}\n`;let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([out],{type:"text/csv"}));a.download="basket-match.csv";a.click()}
+load();
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
+</script>
+</body></html>
